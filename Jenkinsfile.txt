@@ -1,0 +1,20 @@
+pipeline {
+    agent any
+    stages {
+        stage('Cloner le dépôt') {
+            steps {
+                git 'https://github.com/Zayneeb/projetJenkins.git'
+            }
+        }
+        stage('Vérifier les fichiers') {
+            steps {
+                bat 'dir'
+            }
+        }
+        stage('Simulation build web') {
+            steps {
+                echo "Fichiers HTML/CSS bien récupérés "
+            }
+        }
+    }
+}
