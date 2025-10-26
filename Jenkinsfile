@@ -3,7 +3,7 @@ pipeline {
   options { timestamps() }
 
   environment {
-    IMAGE = 'VOTRE_DOCKERHUB/monapp'   // ex: zayneeb/monapp
+    IMAGE = 'ZAYNEB/monapp'   // ex: zayneeb/monapp
     TAG   = "build-${env.BUILD_NUMBER}"
   }
 
