@@ -1,41 +1,47 @@
-// Jenkinsfile (Windows)
 pipeline {
   agent any
   options { timestamps() }
+  environment {
+    IMAGE_NAME = 'votre_username/monapp'   // ex: zaineb/monapp
+    TAG = "build-${env.BUILD_NUMBER}"
+  }
   stages {
-    stage('Cloner le dépôt') {
+    stage('Checkout') {
+      steps { git url: 'https://github.com/ton-org/ton-repo.git', branch: 'main' }
+    }
+    stage('Docker Build') {
       steps {
-        // Si tu configures "Pipeline script from SCM", préfère: checkout scm
-        git url: 'https://github.com/Zayneeb/projetJenkins.git', branch: 'main'
+        sh 'docker version'
+        sh "docker build -t ${IMAGE_NAME}:${TAG} ."
       }
     }
-    stage('Étape 1 : Vérification du dépôt') {
+    stage('Smoke Test') {
       steps {
-        bat 'echo === Étape 1 : Vérification du dépôt ==='
-        bat 'git status'
+        sh '''
+          set -e
+          docker rm -f monapp_test || true
+          docker run -d --name monapp_test -p 8081:80 ${IMAGE_NAME}:${TAG}
+          sleep 2
+          curl -I http://localhost:8081 | grep "200 OK"
+        '''
       }
+      post { always { sh 'docker rm -f monapp_test || true' } }
     }
-    stage('Étape 2 : Afficher le contenu du projet') {
+    stage('Login & Push') {
       steps {
-        bat 'echo === Étape 2 : Afficher le contenu du projet ==='
-        bat 'dir'
-      }
-    }
-    stage('Étape 3 : Simuler un déploiement local') {
-      steps {
-        bat 'echo === Étape 3 : Simuler un déploiement local ==='
-        bat 'echo Le fichier index.html est prêt à être affiché'
-      }
-    }
-    stage('Étape 4 : Fin du build') {
-      steps {
-        bat 'echo === Étape 4 : Fin du build ==='
-        bat 'echo SUCCESS'
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+          sh """
+            echo "${PASS}" | docker login -u "${USER}" --password-stdin
+            docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_NAME}:latest
+            docker push ${IMAGE_NAME}:${TAG}
+            docker push ${IMAGE_NAME}:latest
+          """
+        }
       }
     }
   }
   post {
-    success { echo '✅ Build OK' }
-    failure { echo '❌ Build KO' }
+    success { echo 'Build+Test+Push OK' }
+    failure { echo 'Build/Tests/Push KO' }
   }
 }
