@@ -34,7 +34,7 @@ pipeline {
     stage('Push (Docker Hub)') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                          usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                                          usernameVariable: 'zayneeb', passwordVariable: '09983208')]) {
           bat """
             echo %PASS% | docker login -u %USER% --password-stdin
             docker tag %IMAGE%:%TAG% %IMAGE%:latest
