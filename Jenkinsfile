@@ -31,16 +31,15 @@ pipeline {
       }
     }
 
-    stage('Push (Docker Hub)') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                          usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-          bat """
-            echo dckr_pat_V8LtYUpfMFaa8HA | docker login -u zaynebsakh --password-stdin
-            docker tag %IMAGE%:%TAG% %IMAGE%:latest
-            docker push %IMAGE%:%TAG%
-            docker push %IMAGE%:latest
-          """
+stage('Push (Docker Hub)') {
+  steps {
+    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+      bat """
+        echo %PASS% | docker login -u %USER% --password-stdin
+        docker tag %IMAGE%:%TAG% %IMAGE%:latest
+        docker push %IMAGE%:%TAG%
+        docker push %IMAGE%:latest
+      """
         }
       }
     }
