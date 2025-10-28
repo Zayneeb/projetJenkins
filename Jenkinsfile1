@@ -35,7 +35,7 @@ pipeline {
     stage('Deploy') {
       steps {
         // Utilise le plugin SSH Agent pour se connecter au serveur distant via SSH
-        sshagent(credentials: ['your-ssh-credentials-id']) {
+        sshagent(credentials: ['dockerhub-creds']) {
           sh """
             ssh user@STAGING_HOST << 'EOF'
               cd /path/to/your/project
