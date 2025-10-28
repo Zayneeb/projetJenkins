@@ -9,13 +9,15 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps { checkout scm }  // lit le même repo que le job
+      steps { 
+        checkout scm  // lit le même repo que le job
+      }
     }
 
     stage('Docker Build') {
       steps {
         bat 'docker version'
-        bat "docker build -t %IMAGE%:%TAG% ."
+        bat "docker build -t $IMAGE:$TAG ."
       }
     }
 
@@ -23,7 +25,7 @@ pipeline {
       steps {
         bat """
           docker rm -f monapp_test 2>nul || ver > nul
-          docker run -d --name monapp_test -p 8081:80 %IMAGE%:%TAG%
+          docker run -d --name monapp_test -p 8081:80 $IMAGE:$TAG
           ping -n 3 127.0.0.1 > nul
           curl -I http://localhost:8081 | find "200 OK"
           docker rm -f monapp_test
@@ -36,10 +38,10 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
                                           usernameVariable: 'USER', passwordVariable: 'PASS')]) {
           bat """
-            echo %PASS% | docker login -u %USER% --password-stdin
-            docker tag %IMAGE%:%TAG% %IMAGE%:latest
-            docker push %IMAGE%:%TAG%
-            docker push %IMAGE%:latest
+            echo $PASS | docker login -u $USER --password-stdin
+            docker tag $IMAGE:$TAG $IMAGE:latest
+            docker push $IMAGE:$TAG
+            docker push $IMAGE:latest
           """
         }
       }
